@@ -160,16 +160,53 @@
     }
 
     .combustivel {
-      background: #edf8f2;
-      color: var(--verde-escuro);
-      border: 1px solid #b9dec9;
-      padding: 8px 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 11px;
+      border: 1px solid transparent;
       border-radius: 999px;
       font-size: 13px;
       font-weight: bold;
+      line-height: 1;
+      white-space: nowrap;
     }
 
-    .botao-mapa {
+    .combustivel-icone {
+      font-size: 15px;
+      line-height: 1;
+    }
+
+    .combustivel-gasolina {
+      background: #fff3d6;
+      color: #8a4b00;
+      border-color: #f0c36a;
+    }
+
+    .combustivel-diesel-s10 {
+      background: #e7f1ff;
+      color: #174f8a;
+      border-color: #9fc5ee;
+    }
+
+    .combustivel-diesel-comum {
+      background: #eeeeee;
+      color: #4a4a4a;
+      border-color: #bdbdbd;
+    }
+
+    .combustivel-etanol {
+      background: #e4f6e9;
+      color: #176b35;
+      border-color: #9bd0aa;
+    }
+
+    .combustivel-outro {
+      background: #f3ecff;
+      color: #5d3a8a;
+      border-color: #c9b2e8;
+    }
+.botao-mapa {
       display: block;
       margin-top: 13px;
       background: var(--verde);
@@ -241,410 +278,415 @@
 <footer>Frota Corporativa - Sirtec Sistemas Elétricos</footer>
 
 <script>
-  const dados = [{
-  "id": "centro",
-  "nome": "Centro",
-  "cidades": [
-    {
-      "nome": "Feira de Santana",
-      "postos": [
-        {
-          "nome": "Posto Tropical",
-          "combustiveis": [
-            "Gasolina Comum",
-            "Diesel S10"
-          ],
-          "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Tropical%2C+Feira+de+Santana%2C+BA"
-        }
-      ]
-    },
-    {
-      "nome": "Irecê",
-      "postos": [
-        {
-          "nome": "Posto Copa 70",
-          "combustiveis": [
-            "Gasolina Comum",
-            "Diesel S10"
-          ],
-          "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Copa+70%2C+Irec%C3%AA%2C+BA"
-        }
-      ]
-    },
-    {
-      "nome": "Itaberaba",
-      "postos": [
-        {
-          "nome": "Posto Flor da Chapada II",
-          "combustiveis": [
-            "Gasolina Comum",
-            "Diesel S10"
-          ],
-          "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Flor+da+Chapada+II%2C+Itaberaba%2C+BA"
-        }
-      ]
-    },
-    {
-      "nome": "Serrinha",
-      "postos": [
-        {
-          "nome": "Posto Shalon",
-          "combustiveis": [
-            "Gasolina Comum",
-            "Diesel S10"
-          ],
-          "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Shalon%2C+Serrinha%2C+BA"
-        }
-      ]
-    }
-  ]
-}, {
-  "id": "sudoeste",
-  "nome": "Sudoeste",
-  "cidades": [
-    {
-      "nome": "Anagé",
-      "postos": [
-        {
-          "nome": "Posto Anagé",
-          "combustiveis": [
-            "Gasolina Comum",
-            "Diesel S10"
-          ],
-          "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Anag%C3%A9%2C+Anag%C3%A9%2C+BA"
-        }
-      ]
-    },
-    {
-      "nome": "Belo Campo",
-      "postos": [
-        {
-          "nome": "Posto Cellidão",
-          "combustiveis": [
-            "Gasolina Comum",
-            "Diesel S10",
-            "Diesel Comum"
-          ],
-          "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Cellid%C3%A3o%2C+Belo+Campo%2C+BA"
-        }
-      ]
-    },
-    {
-      "nome": "Cândido Sales",
-      "postos": [
-        {
-          "nome": "Posto 116",
-          "combustiveis": [
-            "Gasolina Comum",
-            "Diesel S10"
-          ],
-          "maps": "https://www.google.com/maps/search/?api=1&query=Posto+116%2C+C%C3%A2ndido+Sales%2C+BA"
-        }
-      ]
-    },
-    {
-      "nome": "Condeúba",
-      "postos": [
-        {
-          "nome": "Posto Ringo",
-          "combustiveis": [
-            "Gasolina Comum",
-            "Diesel S10"
-          ],
-          "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Ringo%2C+Conde%C3%BAba%2C+BA"
-        }
-      ]
-    },
-    {
-      "nome": "Itapetinga",
-      "postos": [
-        {
-          "nome": "Posto Águia",
-          "combustiveis": [
-            "Gasolina Comum",
-            "Diesel S10"
-          ],
-          "maps": "https://www.google.com/maps/search/?api=1&query=Posto+%C3%81guia%2C+Itapetinga%2C+BA"
-        }
-      ]
-    },
-    {
-      "nome": "Jaguaquara",
-      "postos": [
-        {
-          "nome": "Posto Puma II",
-          "combustiveis": [
-            "Gasolina Comum",
-            "Diesel S10"
-          ],
-          "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Puma+II%2C+Jaguaquara%2C+BA"
-        }
-      ]
-    },
-    {
-      "nome": "Jequié",
-      "postos": [
-        {
-          "nome": "Auto Posto SR Herminio",
-          "combustiveis": [
-            "Gasolina Comum",
-            "Diesel S10"
-          ],
-          "maps": "https://maps.app.goo.gl/iZwottth33oDvxLU6"
-        }
-      ]
-    },
-    {
-      "nome": "Maracás",
-      "postos": [
-        {
-          "nome": "Posto Tupy",
-          "combustiveis": [
-            "Gasolina Comum",
-            "Diesel S10"
-          ],
-          "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Tupy%2C+Marac%C3%A1s%2C+BA"
-        }
-      ]
-    },
-    {
-      "nome": "Presidente Jânio Quadros",
-      "postos": [
-        {
-          "nome": "Posto Novo Tempo",
-          "combustiveis": [
-            "Gasolina Comum",
-            "Diesel S10"
-          ],
-          "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Novo+Tempo%2C+Presidente+J%C3%A2nio+Quadros%2C+BA"
-        }
-      ]
-    },
-    {
-      "nome": "Vitória da Conquista",
-      "postos": [
-        {
-          "nome": "Auto Posto Belo Jardim",
-          "combustiveis": [
-            "Gasolina Comum",
-            "Diesel S10"
-          ],
-          "maps": "https://maps.app.goo.gl/ZbwJNBtv8C5qGJeQ9"
-        },
-        {
-          "nome": "Posto Anel Viário Rede HG",
-          "combustiveis": [
-            "Gasolina Comum",
-            "Diesel S10"
-          ],
-          "maps": "https://maps.app.goo.gl/cjkXUjApVWdSv66LA"
-        }
-      ]
-    }
-  ]
-}, {
-  "id": "oeste",
-  "nome": "Oeste",
-  "cidades": [
-    {
-      "nome": "Bom Jesus da Lapa",
-      "postos": [
-        {
-          "nome": "Posto Gruta da Lapa",
-          "combustiveis": [
-            "Gasolina Comum",
-            "Diesel S10",
-            "Diesel Comum"
-          ],
-          "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Gruta+da+Lapa%2C+Bom+Jesus+da+Lapa%2C+BA"
-        }
-      ]
-    },
-    {
-      "nome": "Brumado",
-      "postos": [
-        {
-          "nome": "Posto Meira",
-          "combustiveis": [
-            "Gasolina Comum",
-            "Diesel S10"
-          ],
-          "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Meira%2C+Brumado%2C+BA"
-        }
-      ]
-    },
-    {
-      "nome": "Guanambi",
-      "postos": [
-        {
-          "nome": "Posto Sabrina VII",
-          "combustiveis": [
-            "Gasolina Comum",
-            "Diesel S10",
-            "Diesel Comum"
-          ],
-          "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Sabrina+VII%2C+Guanambi%2C+BA"
-        }
-      ]
-    },
-    {
-      "nome": "Livramento de Nossa Senhora",
-      "postos": [
-        {
-          "nome": "Posto Livramento",
-          "combustiveis": [
-            "Gasolina Comum",
-            "Diesel S10"
-          ],
-          "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Livramento%2C+Livramento+de+Nossa+Senhora%2C+BA"
-        }
-      ]
-    }
-  ]
-}, 
-                 
-{
-  "id": "extremo-oeste",
-  "nome": "Extremo Oeste",
-  "cidades": [
-    {
-      "nome": "Barreiras",
-      "postos": [
-        {
-          "nome": "Auto Posto 01",
-          "combustiveis": [
-            "Gasolina Comum"
-          ],
-          "maps": "https://www.google.com/maps/search/?api=1&query=Auto+Posto+01,+Barreiras,+BA"
-        },
-        {
-          "nome": "Posto Novo Horizontes",
-          "combustiveis": [
-            "Diesel S10"
-          ],
-          "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Novo+Horizontes,+Barreiras,+BA"
-        }
-      ]
-    },
-    {
-      "nome": "Ibotirama",
-      "postos": [
-        {
-          "nome": "Posto Ibotirama",
-          "combustiveis": [
-            "Gasolina Comum",
-            "Diesel S10",
-            "Diesel Comum"
-          ],
-          "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Ibotirama,+Ibotirama,+BA"
-        }
-      ]
-    },
-    {
-      "nome": "Luís Eduardo Magalhães",
-      "postos": [
-        {
-          "nome": "Posto Noventa",
-          "combustiveis": [
-            "Gasolina Comum",
-            "Diesel S10"
-          ],
-          "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Noventa,+Lu%C3%ADs+Eduardo+Magalh%C3%A3es,+BA"
-        }
-      ]
-    }
-  ]
-}, {
-  "id": "fortaleza",
-  "nome": "Fortaleza",
-  "cidades": [
-    {
-      "nome": "Fortaleza",
-      "postos": [
-        {
-          "nome": "Posto Itapery",
-          "combustiveis": [
-            "Gasolina Comum",
-            "Diesel S10"
-          ],
-          "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Itapery%2C+Fortaleza%2C+CE"
-        },
-        {
-          "nome": "Posto Cidade Jardim",
-          "combustiveis": [
-            "Gasolina Comum",
-            "Diesel S10"
-          ],
-          "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Cidade+Jardim%2C+Fortaleza%2C+CE"
-        }
-      ]
-    }
-  ]
-}, 
-{
-  "id": "juazeiro-do-norte",
-  "nome": "Juazeiro do Norte",
-  "cidades": [
-    {
-      "nome": "Juazeiro do Norte",
-      "postos": [
-        {
-          "nome": "Posto Urbano 1",
-          "combustiveis": [
-            "Gasolina Comum",
-            "Diesel Comum"
-          ],
-          "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Urbano+1%2C+Juazeiro+do+Norte%2C+CE"
-        },
-        {
-          "nome": "LKL PETROLEO",
-          "combustiveis": [
-            "Diesel S10"
-          ],
-          "maps": "https://www.google.com/maps/search/?api=1&query=LKL+PETROLEO%2C+Juazeiro+do+Norte%2C+CE"
-        }
-      ]
-    }
-  ]
-}, 
-{
-  "id": "sorocaba",
-  "nome": "Sorocaba",
-  "cidades": [
-    {
-      "nome": "Sorocaba",
-      "postos": [
-        {
-          "nome": "Posto Linc",
-          "combustiveis": [
-            "Gasolina Comum",
-            "Etanol"
-          ],
-          "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Linc%2C+Sorocaba%2C+SP"
-        }
-      ]
-    }
-  ]
-}, 
-{
-  "id": "ourinhos",
-  "nome": "Ourinhos",
-  "cidades": [
-    {
-      "nome": "Ourinhos",
-      "postos": [
-        {
-          "nome": "Auto Posto Santa Catarina",
-          "combustiveis": [
-            "Gasolina Comum",
-            "Etanol"
-          ],
-          "maps": "https://www.google.com/maps/search/?api=1&query=Auto+Posto+Santa+Catarina%2C+Ourinhos%2C+SP"
-        }
-      ]
-    }
-  ]
-},];
+  const dados = [
+  {
+    "id": "centro",
+    "nome": "Centro",
+    "cidades": [
+      {
+        "nome": "Feira de Santana",
+        "postos": [
+          {
+            "nome": "Posto Tropical",
+            "combustiveis": [
+              "Gasolina Comum",
+              "Diesel S10"
+            ],
+            "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Tropical%2C+Feira+de+Santana%2C+BA"
+          }
+        ]
+      },
+      {
+        "nome": "Irecê",
+        "postos": [
+          {
+            "nome": "Posto Copa 70",
+            "combustiveis": [
+              "Gasolina Comum",
+              "Diesel S10"
+            ],
+            "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Copa+70%2C+Irec%C3%AA%2C+BA"
+          }
+        ]
+      },
+      {
+        "nome": "Itaberaba",
+        "postos": [
+          {
+            "nome": "Posto Flor da Chapada II",
+            "combustiveis": [
+              "Gasolina Comum",
+              "Diesel S10"
+            ],
+            "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Flor+da+Chapada+II%2C+Itaberaba%2C+BA"
+          }
+        ]
+      },
+      {
+        "nome": "Serrinha",
+        "postos": [
+          {
+            "nome": "Posto Shalon",
+            "combustiveis": [
+              "Gasolina Comum",
+              "Diesel S10"
+            ],
+            "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Shalon%2C+Serrinha%2C+BA"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sudoeste",
+    "nome": "Sudoeste",
+    "cidades": [
+      {
+        "nome": "Anagé",
+        "postos": [
+          {
+            "nome": "Posto Anagé",
+            "combustiveis": [
+              "Gasolina Comum",
+              "Diesel S10"
+            ],
+            "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Anag%C3%A9%2C+Anag%C3%A9%2C+BA"
+          }
+        ]
+      },
+      {
+        "nome": "Belo Campo",
+        "postos": [
+          {
+            "nome": "Posto Cellidão",
+            "combustiveis": [
+              "Gasolina Comum",
+              "Diesel S10",
+              "Diesel Comum"
+            ],
+            "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Cellid%C3%A3o%2C+Belo+Campo%2C+BA"
+          }
+        ]
+      },
+      {
+        "nome": "Cândido Sales",
+        "postos": [
+          {
+            "nome": "Posto 116",
+            "combustiveis": [
+              "Gasolina Comum",
+              "Diesel S10"
+            ],
+            "maps": "https://www.google.com/maps/search/?api=1&query=Posto+116%2C+C%C3%A2ndido+Sales%2C+BA"
+          }
+        ]
+      },
+      {
+        "nome": "Condeúba",
+        "postos": [
+          {
+            "nome": "Posto Ringo",
+            "combustiveis": [
+              "Gasolina Comum",
+              "Diesel S10"
+            ],
+            "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Ringo%2C+Conde%C3%BAba%2C+BA"
+          }
+        ]
+      },
+      {
+        "nome": "Itapetinga",
+        "postos": [
+          {
+            "nome": "Posto Águia",
+            "combustiveis": [
+              "Gasolina Comum",
+              "Diesel S10"
+            ],
+            "maps": "https://www.google.com/maps/search/?api=1&query=Posto+%C3%81guia%2C+Itapetinga%2C+BA"
+          }
+        ]
+      },
+      {
+        "nome": "Jaguaquara",
+        "postos": [
+          {
+            "nome": "Posto Puma II",
+            "combustiveis": [
+              "Gasolina Comum",
+              "Diesel S10"
+            ],
+            "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Puma+II%2C+Jaguaquara%2C+BA"
+          }
+        ]
+      },
+      {
+        "nome": "Jequié",
+        "postos": [
+          {
+            "nome": "Auto Posto SR Herminio",
+            "combustiveis": [
+              "Gasolina Comum",
+              "Diesel S10"
+            ],
+            "maps": "https://maps.app.goo.gl/iZwottth33oDvxLU6"
+          }
+        ]
+      },
+      {
+        "nome": "Maracás",
+        "postos": [
+          {
+            "nome": "Posto Tupy",
+            "combustiveis": [
+              "Gasolina Comum",
+              "Diesel S10"
+            ],
+            "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Tupy%2C+Marac%C3%A1s%2C+BA"
+          }
+        ]
+      },
+      {
+        "nome": "Presidente Jânio Quadros",
+        "postos": [
+          {
+            "nome": "Posto Novo Tempo",
+            "combustiveis": [
+              "Gasolina Comum",
+              "Diesel S10"
+            ],
+            "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Novo+Tempo%2C+Presidente+J%C3%A2nio+Quadros%2C+BA"
+          }
+        ]
+      },
+      {
+        "nome": "Vitória da Conquista",
+        "postos": [
+          {
+            "nome": "Auto Posto Belo Jardim",
+            "combustiveis": [
+              "Gasolina Comum",
+              "Diesel S10"
+            ],
+            "maps": "https://maps.app.goo.gl/ZbwJNBtv8C5qGJeQ9"
+          },
+          {
+            "nome": "Posto Anel Viário Rede HG",
+            "combustiveis": [
+              "Gasolina Comum",
+              "Diesel S10"
+            ],
+            "maps": "https://maps.app.goo.gl/cjkXUjApVWdSv66LA"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "oeste",
+    "nome": "Oeste",
+    "cidades": [
+      {
+        "nome": "Bom Jesus da Lapa",
+        "postos": [
+          {
+            "nome": "Posto Gruta da Lapa",
+            "combustiveis": [
+              "Gasolina Comum",
+              "Diesel S10",
+              "Diesel Comum"
+            ],
+            "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Gruta+da+Lapa%2C+Bom+Jesus+da+Lapa%2C+BA"
+          }
+        ]
+      },
+      {
+        "nome": "Brumado",
+        "postos": [
+          {
+            "nome": "Posto Meira",
+            "combustiveis": [
+              "Gasolina Comum",
+              "Diesel S10"
+            ],
+            "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Meira%2C+Brumado%2C+BA"
+          }
+        ]
+      },
+      {
+        "nome": "Guanambi",
+        "postos": [
+          {
+            "nome": "Posto Sabrina VII",
+            "combustiveis": [
+              "Gasolina Comum",
+              "Diesel S10",
+              "Diesel Comum"
+            ],
+            "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Sabrina+VII%2C+Guanambi%2C+BA"
+          }
+        ]
+      },
+      {
+        "nome": "Livramento de Nossa Senhora",
+        "postos": [
+          {
+            "nome": "Posto Livramento",
+            "combustiveis": [
+              "Gasolina Comum",
+              "Diesel S10"
+            ],
+            "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Livramento%2C+Livramento+de+Nossa+Senhora%2C+BA"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "extremo-oeste",
+    "nome": "Extremo Oeste",
+    "cidades": [
+      {
+        "nome": "Barreiras",
+        "postos": [
+          {
+            "nome": "Auto Posto 01",
+            "combustiveis": [
+              "Gasolina Comum"
+            ],
+            "maps": "https://www.google.com/maps/search/?api=1&query=Auto+Posto+01%2C+Barreiras%2C+BA"
+          },
+          {
+            "nome": "Posto Novo Horizontes",
+            "combustiveis": [
+              "Diesel S10"
+            ],
+            "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Novo+Horizontes%2C+Barreiras%2C+BA"
+          }
+        ]
+      },
+      {
+        "nome": "Ibotirama",
+        "postos": [
+          {
+            "nome": "Posto Ibotirama",
+            "combustiveis": [
+              "Gasolina Comum",
+              "Diesel S10",
+              "Diesel Comum"
+            ],
+            "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Ibotirama%2C+Ibotirama%2C+BA"
+          }
+        ]
+      },
+      {
+        "nome": "Luís Eduardo Magalhães",
+        "postos": [
+          {
+            "nome": "Posto Noventa",
+            "combustiveis": [
+              "Gasolina Comum",
+              "Diesel S10"
+            ],
+            "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Noventa%2C+Lu%C3%ADs+Eduardo+Magalh%C3%A3es%2C+BA"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "fortaleza",
+    "nome": "Fortaleza",
+    "cidades": [
+      {
+        "nome": "Fortaleza",
+        "postos": [
+          {
+            "nome": "Posto Itapery",
+            "combustiveis": [
+              "Gasolina Comum",
+              "Diesel S10"
+            ],
+            "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Itapery%2C+Fortaleza%2C+CE"
+          },
+          {
+            "nome": "Posto Cidade Jardim",
+            "combustiveis": [
+              "Gasolina Comum",
+              "Diesel S10"
+            ],
+            "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Cidade+Jardim%2C+Fortaleza%2C+CE"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "juazeiro-do-norte",
+    "nome": "Juazeiro do Norte",
+    "cidades": [
+      {
+        "nome": "Juazeiro do Norte",
+        "postos": [
+          {
+            "nome": "Posto Urbano 1",
+            "combustiveis": [
+              "Gasolina Comum",
+              "Diesel Comum"
+            ],
+            "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Urbano+1%2C+Juazeiro+do+Norte%2C+CE"
+          },
+          {
+            "nome": "LKL PETROLEO",
+            "combustiveis": [
+              "Diesel S10"
+            ],
+            "maps": "https://www.google.com/maps/search/?api=1&query=LKL+PETROLEO%2C+Juazeiro+do+Norte%2C+CE"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sorocaba",
+    "nome": "Sorocaba",
+    "cidades": [
+      {
+        "nome": "Sorocaba",
+        "postos": [
+          {
+            "nome": "Posto Linc",
+            "combustiveis": [
+              "Gasolina Comum",
+              "Etanol"
+            ],
+            "maps": "https://www.google.com/maps/search/?api=1&query=Posto+Linc%2C+Sorocaba%2C+SP"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ourinhos",
+    "nome": "Ourinhos",
+    "cidades": [
+      {
+        "nome": "Ourinhos",
+        "postos": [
+          {
+            "nome": "Auto Posto Santa Catarina",
+            "combustiveis": [
+              "Gasolina Comum",
+              "Etanol"
+            ],
+            "maps": "https://www.google.com/maps/search/?api=1&query=Auto+Posto+Santa+Catarina%2C+Ourinhos%2C+SP"
+          }
+        ]
+      }
+    ]
+  }
+];
+
   const botoesRegionais = document.getElementById("botoesRegionais");
   const conteudo = document.getElementById("conteudo");
   const busca = document.getElementById("busca");
@@ -657,6 +699,42 @@
       .replaceAll(">", "&gt;")
       .replaceAll('"', "&quot;")
       .replaceAll("'", "&#039;");
+  }
+
+  function normalizarCombustivel(texto) {
+    return String(texto)
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim()
+      .toLocaleLowerCase("pt-BR");
+  }
+
+  function obterVisualCombustivel(combustivel) {
+    const nome = normalizarCombustivel(combustivel);
+
+    const visuais = {
+      "gasolina comum": {
+        classe: "combustivel-gasolina",
+        simbolo: "⛽"
+      },
+      "diesel s10": {
+        classe: "combustivel-diesel-s10",
+        simbolo: "⚙️"
+      },
+      "diesel comum": {
+        classe: "combustivel-diesel-comum",
+        simbolo: "🚛"
+      },
+      "etanol": {
+        classe: "combustivel-etanol",
+        simbolo: "🌿"
+      }
+    };
+
+    return visuais[nome] || {
+      classe: "combustivel-outro",
+      simbolo: "◆"
+    };
   }
 
   function criarBotoes() {
@@ -682,162 +760,175 @@
     renderizar();
   }
 
-function renderizar() {
-  const termo = busca.value.trim().toLocaleLowerCase("pt-BR");
+  function renderizar() {
+    const termo = busca.value.trim().toLocaleLowerCase("pt-BR");
 
-  // Quando existe uma pesquisa, procura em todas as regionais
-  if (termo) {
-    const resultados = dados
-      .map(regional => {
-        const cidades = regional.cidades
-          .map(cidade => {
-            const cidadeCombina = cidade.nome
-              .toLocaleLowerCase("pt-BR")
-              .includes(termo);
+    // Quando existe uma pesquisa, procura em todas as regionais
+    if (termo) {
+      const resultados = dados
+        .map(regional => {
+          const cidades = regional.cidades
+            .map(cidade => {
+              const cidadeCombina = cidade.nome
+                .toLocaleLowerCase("pt-BR")
+                .includes(termo);
 
-            const postos = cidade.postos.filter(posto =>
-              cidadeCombina ||
-              posto.nome.toLocaleLowerCase("pt-BR").includes(termo) ||
-              posto.combustiveis.some(combustivel =>
-                combustivel.toLocaleLowerCase("pt-BR").includes(termo)
-              )
-            );
+              const postos = cidade.postos.filter(posto =>
+                cidadeCombina ||
+                posto.nome.toLocaleLowerCase("pt-BR").includes(termo) ||
+                posto.combustiveis.some(combustivel =>
+                  combustivel.toLocaleLowerCase("pt-BR").includes(termo)
+                )
+              );
 
-            return {
-              ...cidade,
-              postos
-            };
-          })
-          .filter(cidade => cidade.postos.length);
+              return {
+                ...cidade,
+                postos
+              };
+            })
+            .filter(cidade => cidade.postos.length);
 
-        return {
-          ...regional,
-          cidades
-        };
-      })
-      .filter(regional => regional.cidades.length);
+          return {
+            ...regional,
+            cidades
+          };
+        })
+        .filter(regional => regional.cidades.length);
 
-    document.querySelectorAll(".botao-regional").forEach(botao => {
-      botao.classList.remove("ativo");
-    });
+      document.querySelectorAll(".botao-regional").forEach(botao => {
+        botao.classList.remove("ativo");
+      });
 
-    if (!resultados.length) {
+      if (!resultados.length) {
+        conteudo.innerHTML = `
+          <div class="mensagem">
+            Nenhuma cidade, posto ou combustível encontrado.
+          </div>
+        `;
+        return;
+      }
+
+      conteudo.innerHTML = resultados.map(regional => `
+        <section>
+          <h2 class="nome-regional">
+            Regional ${escapar(regional.nome)}
+          </h2>
+
+          ${regional.cidades.map(cidade => `
+            <article class="cidade">
+              <h3>${escapar(cidade.nome)}</h3>
+
+              ${cidade.postos.map(posto => `
+                <div class="posto">
+                  <h4>${escapar(posto.nome)}</h4>
+
+                  <div class="rotulo">
+                    COMBUSTÍVEIS INDICADOS
+                  </div>
+
+                  <div class="combustiveis">
+                    ${posto.combustiveis.map(combustivel => {
+                      const visual = obterVisualCombustivel(combustivel);
+
+                      return `
+                        <span class="combustivel ${visual.classe}">
+                          <span class="combustivel-icone" aria-hidden="true">
+                            ${visual.simbolo}
+                          </span>
+                          ${escapar(combustivel)}
+                        </span>
+                      `;
+                    }).join("")}
+                  </div>
+
+                  <a
+                    class="botao-mapa"
+                    href="${escapar(posto.maps)}"
+                    target="_blank"
+                    rel="noopener noreferrer">
+                    Abrir no Google Maps
+                  </a>
+                </div>
+              `).join("")}
+            </article>
+          `).join("")}
+        </section>
+      `).join("");
+
+      return;
+    }
+
+    // Sem pesquisa, mantém a navegação normal por regional
+    if (!regionalAtiva) {
       conteudo.innerHTML = `
         <div class="mensagem">
-          Nenhuma cidade, posto ou combustível encontrado.
+          Escolha uma regional ou pesquise uma cidade, posto ou combustível.
         </div>
       `;
       return;
     }
 
-    conteudo.innerHTML = resultados.map(regional => `
-      <section>
+    const regional = dados.find(item => item.id === regionalAtiva);
+
+    if (!regional.cidades.length) {
+      conteudo.innerHTML = `
         <h2 class="nome-regional">
           Regional ${escapar(regional.nome)}
         </h2>
 
-        ${regional.cidades.map(cidade => `
-          <article class="cidade">
-            <h3>${escapar(cidade.nome)}</h3>
+        <div class="mensagem">
+          Os postos desta regional ainda serão cadastrados.
+        </div>
+      `;
+      return;
+    }
 
-            ${cidade.postos.map(posto => `
-              <div class="posto">
-                <h4>${escapar(posto.nome)}</h4>
-
-                <div class="rotulo">
-                  COMBUSTÍVEIS INDICADOS
-                </div>
-
-                <div class="combustiveis">
-                  ${posto.combustiveis.map(combustivel => `
-                    <span class="combustivel">
-                      ✓ ${escapar(combustivel)}
-                    </span>
-                  `).join("")}
-                </div>
-
-                <a
-                  class="botao-mapa"
-                  href="${escapar(posto.maps)}"
-                  target="_blank"
-                  rel="noopener noreferrer">
-                  Abrir no Google Maps
-                </a>
-              </div>
-            `).join("")}
-          </article>
-        `).join("")}
-      </section>
-    `).join("");
-
-    return;
-  }
-
-  // Sem pesquisa, mantém a navegação normal por regional
-  if (!regionalAtiva) {
-    conteudo.innerHTML = `
-      <div class="mensagem">
-        Escolha uma regional ou pesquise uma cidade, posto ou combustível.
-      </div>
-    `;
-    return;
-  }
-
-  const regional = dados.find(item => item.id === regionalAtiva);
-
-  if (!regional.cidades.length) {
     conteudo.innerHTML = `
       <h2 class="nome-regional">
         Regional ${escapar(regional.nome)}
       </h2>
 
-      <div class="mensagem">
-        Os postos desta regional ainda serão cadastrados.
-      </div>
+      ${regional.cidades.map(cidade => `
+        <article class="cidade">
+          <h3>${escapar(cidade.nome)}</h3>
+
+          ${cidade.postos.map(posto => `
+            <div class="posto">
+              <h4>${escapar(posto.nome)}</h4>
+
+              <div class="rotulo">
+                COMBUSTÍVEIS INDICADOS
+              </div>
+
+              <div class="combustiveis">
+                ${posto.combustiveis.map(combustivel => {
+                  const visual = obterVisualCombustivel(combustivel);
+
+                  return `
+                    <span class="combustivel ${visual.classe}">
+                      <span class="combustivel-icone" aria-hidden="true">
+                        ${visual.simbolo}
+                      </span>
+                      ${escapar(combustivel)}
+                    </span>
+                  `;
+                }).join("")}
+              </div>
+
+              <a
+                class="botao-mapa"
+                href="${escapar(posto.maps)}"
+                target="_blank"
+                rel="noopener noreferrer">
+                Abrir no Google Maps
+              </a>
+            </div>
+          `).join("")}
+        </article>
+      `).join("")}
     `;
-    return;
   }
-
-  conteudo.innerHTML = `
-    <h2 class="nome-regional">
-      Regional ${escapar(regional.nome)}
-    </h2>
-
-    ${regional.cidades.map(cidade => `
-      <article class="cidade">
-        <h3>${escapar(cidade.nome)}</h3>
-
-        ${cidade.postos.map(posto => `
-          <div class="posto">
-            <h4>${escapar(posto.nome)}</h4>
-
-            <div class="rotulo">
-              COMBUSTÍVEIS INDICADOS
-            </div>
-
-            <div class="combustiveis">
-              ${posto.combustiveis.map(combustivel => `
-                <span class="combustivel">
-                  ✓ ${escapar(combustivel)}
-                </span>
-              `).join("")}
-            </div>
-
-            <a
-              class="botao-mapa"
-              href="${escapar(posto.maps)}"
-              target="_blank"
-              rel="noopener noreferrer">
-              Abrir no Google Maps
-            </a>
-          </div>
-        `).join("")}
-      </article>
-    `).join("")}
-  `;
-}
-
-busca.addEventListener("input", renderizar);
+  busca.addEventListener("input", renderizar);
 
   criarBotoes();
 </script>
