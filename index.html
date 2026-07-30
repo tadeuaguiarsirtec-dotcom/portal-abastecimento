@@ -356,77 +356,162 @@
     renderizar();
   }
 
-  function renderizar() {
-    if (!regionalAtiva) return;
+function renderizar() {
+  const termo = busca.value.trim().toLocaleLowerCase("pt-BR");
 
-    const regional = dados.find(item => item.id === regionalAtiva);
-    const termo = busca.value.trim().toLocaleLowerCase("pt-BR");
+  // Quando existe uma pesquisa, procura em todas as regionais
+  if (termo) {
+    const resultados = dados
+      .map(regional => {
+        const cidades = regional.cidades
+          .map(cidade => {
+            const cidadeCombina = cidade.nome
+              .toLocaleLowerCase("pt-BR")
+              .includes(termo);
 
-    if (!regional.cidades.length) {
-      conteudo.innerHTML = `
-        <h2 class="nome-regional">Regional ${escapar(regional.nome)}</h2>
-        <div class="mensagem">Os postos desta regional ainda serão cadastrados.</div>
-      `;
-      return;
-    }
+            const postos = cidade.postos.filter(posto =>
+              cidadeCombina ||
+              posto.nome.toLocaleLowerCase("pt-BR").includes(termo) ||
+              posto.combustiveis.some(combustivel =>
+                combustivel.toLocaleLowerCase("pt-BR").includes(termo)
+              )
+            );
 
-    const cidadesFiltradas = regional.cidades
-      .map(cidade => {
-        const cidadeCombina = cidade.nome.toLocaleLowerCase("pt-BR").includes(termo);
-        const postos = cidade.postos.filter(posto =>
-          cidadeCombina ||
-          posto.nome.toLocaleLowerCase("pt-BR").includes(termo) ||
-          posto.combustiveis.some(combustivel =>
-            combustivel.toLocaleLowerCase("pt-BR").includes(termo)
-          )
-        );
+            return {
+              ...cidade,
+              postos
+            };
+          })
+          .filter(cidade => cidade.postos.length);
 
-        return { ...cidade, postos };
+        return {
+          ...regional,
+          cidades
+        };
       })
-      .filter(cidade => cidade.postos.length);
+      .filter(regional => regional.cidades.length);
 
-    if (!cidadesFiltradas.length) {
+    document.querySelectorAll(".botao-regional").forEach(botao => {
+      botao.classList.remove("ativo");
+    });
+
+    if (!resultados.length) {
       conteudo.innerHTML = `
-        <h2 class="nome-regional">Regional ${escapar(regional.nome)}</h2>
-        <div class="mensagem">Nenhuma cidade ou posto encontrado.</div>
+        <div class="mensagem">
+          Nenhuma cidade, posto ou combustível encontrado.
+        </div>
       `;
       return;
     }
 
-    conteudo.innerHTML = `
-      <h2 class="nome-regional">Regional ${escapar(regional.nome)}</h2>
-      ${cidadesFiltradas.map(cidade => `
-        <article class="cidade">
-          <h3>${escapar(cidade.nome)}</h3>
+    conteudo.innerHTML = resultados.map(regional => `
+      <section>
+        <h2 class="nome-regional">
+          Regional ${escapar(regional.nome)}
+        </h2>
 
-          ${cidade.postos.map(posto => `
-            <div class="posto">
-              <h4>${escapar(posto.nome)}</h4>
-              <div class="rotulo">COMBUSTÍVEIS INDICADOS</div>
+        ${regional.cidades.map(cidade => `
+          <article class="cidade">
+            <h3>${escapar(cidade.nome)}</h3>
 
-              <div class="combustiveis">
-                ${posto.combustiveis.map(combustivel => `
-                  <span class="combustivel">✓ ${escapar(combustivel)}</span>
-                `).join("")}
+            ${cidade.postos.map(posto => `
+              <div class="posto">
+                <h4>${escapar(posto.nome)}</h4>
+
+                <div class="rotulo">
+                  COMBUSTÍVEIS INDICADOS
+                </div>
+
+                <div class="combustiveis">
+                  ${posto.combustiveis.map(combustivel => `
+                    <span class="combustivel">
+                      ✓ ${escapar(combustivel)}
+                    </span>
+                  `).join("")}
+                </div>
+
+                <a
+                  class="botao-mapa"
+                  href="${escapar(posto.maps)}"
+                  target="_blank"
+                  rel="noopener noreferrer">
+                  Abrir no Google Maps
+                </a>
               </div>
+            `).join("")}
+          </article>
+        `).join("")}
+      </section>
+    `).join("");
 
-              <a
-                class="botao-mapa"
-                href="${escapar(posto.maps)}"
-                target="_blank"
-                rel="noopener noreferrer">
-                Abrir no Google Maps
-              </a>
-            </div>
-          `).join("")}
-        </article>
-      `).join("")}
-    `;
+    return;
   }
 
-  busca.addEventListener("input", () => {
-    if (regionalAtiva) renderizar();
-  });
+  // Sem pesquisa, mantém a navegação normal por regional
+  if (!regionalAtiva) {
+    conteudo.innerHTML = `
+      <div class="mensagem">
+        Escolha uma regional ou pesquise uma cidade, posto ou combustível.
+      </div>
+    `;
+    return;
+  }
+
+  const regional = dados.find(item => item.id === regionalAtiva);
+
+  if (!regional.cidades.length) {
+    conteudo.innerHTML = `
+      <h2 class="nome-regional">
+        Regional ${escapar(regional.nome)}
+      </h2>
+
+      <div class="mensagem">
+        Os postos desta regional ainda serão cadastrados.
+      </div>
+    `;
+    return;
+  }
+
+  conteudo.innerHTML = `
+    <h2 class="nome-regional">
+      Regional ${escapar(regional.nome)}
+    </h2>
+
+    ${regional.cidades.map(cidade => `
+      <article class="cidade">
+        <h3>${escapar(cidade.nome)}</h3>
+
+        ${cidade.postos.map(posto => `
+          <div class="posto">
+            <h4>${escapar(posto.nome)}</h4>
+
+            <div class="rotulo">
+              COMBUSTÍVEIS INDICADOS
+            </div>
+
+            <div class="combustiveis">
+              ${posto.combustiveis.map(combustivel => `
+                <span class="combustivel">
+                  ✓ ${escapar(combustivel)}
+                </span>
+              `).join("")}
+            </div>
+
+            <a
+              class="botao-mapa"
+              href="${escapar(posto.maps)}"
+              target="_blank"
+              rel="noopener noreferrer">
+              Abrir no Google Maps
+            </a>
+          </div>
+        `).join("")}
+      </article>
+    `).join("")}
+  `;
+}
+
+busca.addEventListener("input", renderizar);
 
   criarBotoes();
 </script>
