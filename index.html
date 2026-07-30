@@ -1,1 +1,326 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal de Abastecimento - Sirtec</title>
 
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f4f6f8;
+      color: #263238;
+    }
+
+    header {
+      background: #005b96;
+      color: white;
+      text-align: center;
+      padding: 24px 16px;
+    }
+
+    header h1 {
+      margin: 0 0 6px;
+      font-size: 26px;
+    }
+
+    header p {
+      margin: 0;
+      font-size: 14px;
+    }
+
+    main {
+      width: min(900px, 94%);
+      margin: 22px auto;
+    }
+
+    .aviso {
+      background: #fff3cd;
+      border-left: 5px solid #ffc107;
+      padding: 14px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+
+    .titulo-secao {
+      margin: 0 0 12px;
+      font-size: 20px;
+    }
+
+    .regionais {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .botao-regional {
+      border: none;
+      background: white;
+      color: #005b96;
+      padding: 18px 12px;
+      border-radius: 10px;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+
+    .botao-regional:hover,
+    .botao-regional.ativo {
+      background: #005b96;
+      color: white;
+    }
+
+    .conteudo-regional {
+      display: none;
+    }
+
+    .conteudo-regional.ativo {
+      display: block;
+    }
+
+    .nome-regional {
+      color: #005b96;
+      margin: 0 0 16px;
+      font-size: 23px;
+    }
+
+    .cidade {
+      background: white;
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 18px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.07);
+    }
+
+    .cidade h3 {
+      margin: 0 0 16px;
+      color: #005b96;
+      font-size: 21px;
+      border-bottom: 1px solid #d9e1e7;
+      padding-bottom: 10px;
+    }
+
+    .posto {
+      border: 1px solid #d9e1e7;
+      border-radius: 9px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .posto:last-child {
+      margin-bottom: 0;
+    }
+
+    .posto h4 {
+      margin: 0 0 12px;
+      font-size: 17px;
+    }
+
+    .linha-preco {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 7px 0;
+      border-bottom: 1px solid #edf0f2;
+      font-size: 14px;
+    }
+
+    .linha-preco:last-of-type {
+      border-bottom: none;
+    }
+
+    .linha-preco strong {
+      color: #198754;
+    }
+
+    .botao-mapa {
+      display: block;
+      margin-top: 13px;
+      background: #198754;
+      color: white;
+      text-align: center;
+      text-decoration: none;
+      font-weight: bold;
+      padding: 11px;
+      border-radius: 8px;
+    }
+
+    .botao-mapa:hover {
+      background: #146c43;
+    }
+
+    .mensagem-inicial {
+      background: white;
+      border-radius: 10px;
+      padding: 22px;
+      text-align: center;
+      color: #66737b;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+    }
+
+    footer {
+      text-align: center;
+      padding: 18px;
+      background: #263238;
+      color: white;
+      font-size: 12px;
+      margin-top: 30px;
+    }
+
+    @media (max-width: 600px) {
+      .regionais {
+        grid-template-columns: 1fr;
+      }
+
+      header h1 {
+        font-size: 22px;
+      }
+
+      .linha-preco {
+        font-size: 13px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>Portal de Abastecimento</h1>
+  <p>Frota Corporativa - Sirtec Sistemas Elétricos</p>
+</header>
+
+<main>
+
+  <div class="aviso">
+    <strong>Importante:</strong>
+    selecione sua regional e consulte o posto indicado antes de abastecer.
+  </div>
+
+  <h2 class="titulo-secao">Selecione sua regional</h2>
+
+  <section class="regionais">
+    <button class="botao-regional" data-regional="centro">Centro</button>
+    <button class="botao-regional" data-regional="sudoeste">Sudoeste</button>
+    <button class="botao-regional" data-regional="oeste">Oeste</button>
+    <button class="botao-regional" data-regional="extremo-oeste">Extremo Oeste</button>
+  </section>
+
+  <div id="mensagemInicial" class="mensagem-inicial">
+    Escolha uma regional acima para visualizar as cidades e os postos indicados.
+  </div>
+
+  <section id="centro" class="conteudo-regional">
+    <h2 class="nome-regional">Regional Centro</h2>
+
+    <div class="cidade">
+      <h3>Cidades em breve</h3>
+      <p>Os postos desta regional ainda serão cadastrados.</p>
+    </div>
+  </section>
+
+  <section id="sudoeste" class="conteudo-regional">
+    <h2 class="nome-regional">Regional Sudoeste</h2>
+
+    <div class="cidade">
+      <h3>Vitória da Conquista</h3>
+
+      <div class="posto">
+        <h4>Auto Posto Belo Jardim</h4>
+
+        <div class="linha-preco">
+          <span>Gasolina Comum</span>
+          <strong>R$ 6,73</strong>
+        </div>
+
+        <div class="linha-preco">
+          <span>Diesel S10</span>
+          <strong>R$ 7,11</strong>
+        </div>
+
+        <a
+          class="botao-mapa"
+          href="https://maps.app.goo.gl/ZbwJNBtv8C5qGJeQ9"
+          target="_blank"
+          rel="noopener noreferrer">
+          Abrir no Google Maps
+        </a>
+      </div>
+
+      <div class="posto">
+        <h4>Posto Anel Viário Rede HG</h4>
+
+        <div class="linha-preco">
+          <span>Gasolina Comum</span>
+          <strong>R$ 6,63</strong>
+        </div>
+
+        <div class="linha-preco">
+          <span>Diesel S10</span>
+          <strong>R$ 7,00</strong>
+        </div>
+
+        <a
+          class="botao-mapa"
+          href="https://maps.app.goo.gl/cjkXUjApVWdSv66LA"
+          target="_blank"
+          rel="noopener noreferrer">
+          Abrir no Google Maps
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section id="oeste" class="conteudo-regional">
+    <h2 class="nome-regional">Regional Oeste</h2>
+
+    <div class="cidade">
+      <h3>Cidades em breve</h3>
+      <p>Os postos desta regional ainda serão cadastrados.</p>
+    </div>
+  </section>
+
+  <section id="extremo-oeste" class="conteudo-regional">
+    <h2 class="nome-regional">Regional Extremo Oeste</h2>
+
+    <div class="cidade">
+      <h3>Cidades em breve</h3>
+      <p>Os postos desta regional ainda serão cadastrados.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  Frota Corporativa - Sirtec Sistemas Elétricos
+</footer>
+
+<script>
+  const botoes = document.querySelectorAll(".botao-regional");
+  const secoes = document.querySelectorAll(".conteudo-regional");
+  const mensagemInicial = document.getElementById("mensagemInicial");
+
+  botoes.forEach((botao) => {
+    botao.addEventListener("click", () => {
+      const regional = botao.dataset.regional;
+
+      botoes.forEach((item) => item.classList.remove("ativo"));
+      secoes.forEach((secao) => secao.classList.remove("ativo"));
+
+      botao.classList.add("ativo");
+      document.getElementById(regional).classList.add("ativo");
+      mensagemInicial.style.display = "none";
+    });
+  });
+</script>
+
+</body>
+</html>
