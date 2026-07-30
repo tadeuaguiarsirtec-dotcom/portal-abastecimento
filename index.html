@@ -701,16 +701,18 @@
       .replaceAll("'", "&#039;");
   }
 
-  function normalizarCombustivel(texto) {
+  function normalizarTexto(texto) {
     return String(texto)
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
-      .trim()
-      .toLocaleLowerCase("pt-BR");
+      .toLocaleLowerCase("pt-BR")
+      .replace(/[^a-z0-9]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
   }
 
   function obterVisualCombustivel(combustivel) {
-    const nome = normalizarCombustivel(combustivel);
+    const nome = normalizarTexto(combustivel);
 
     const visuais = {
       "gasolina comum": {
@@ -761,7 +763,7 @@
   }
 
   function renderizar() {
-    const termo = busca.value.trim().toLocaleLowerCase("pt-BR");
+    const termo = normalizarTexto(busca.value);
 
     // Quando existe uma pesquisa, procura em todas as regionais
     if (termo) {
@@ -769,15 +771,13 @@
         .map(regional => {
           const cidades = regional.cidades
             .map(cidade => {
-              const cidadeCombina = cidade.nome
-                .toLocaleLowerCase("pt-BR")
-                .includes(termo);
+              const cidadeCombina = normalizarTexto(cidade.nome).includes(termo);
 
               const postos = cidade.postos.filter(posto =>
                 cidadeCombina ||
-                posto.nome.toLocaleLowerCase("pt-BR").includes(termo) ||
+                normalizarTexto(posto.nome).includes(termo) ||
                 posto.combustiveis.some(combustivel =>
-                  combustivel.toLocaleLowerCase("pt-BR").includes(termo)
+                  normalizarTexto(combustivel).includes(termo)
                 )
               );
 
