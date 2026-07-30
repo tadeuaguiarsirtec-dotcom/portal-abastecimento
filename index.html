@@ -741,7 +741,11 @@
 
   function criarBotoes() {
     botoesRegionais.innerHTML = dados.map(regional => `
-      <button class="botao-regional" data-id="${regional.id}">
+      <button
+        class="botao-regional"
+        data-id="${regional.id}"
+        type="button"
+        aria-pressed="false">
         ${escapar(regional.nome)}
       </button>
     `).join("");
@@ -752,11 +756,14 @@
   }
 
   function selecionarRegional(id) {
-    regionalAtiva = id;
+    // Ao tocar novamente na regional selecionada, remove a seleção.
+    regionalAtiva = regionalAtiva === id ? null : id;
     busca.value = "";
 
     document.querySelectorAll(".botao-regional").forEach(botao => {
-      botao.classList.toggle("ativo", botao.dataset.id === id);
+      const estaAtivo = botao.dataset.id === regionalAtiva;
+      botao.classList.toggle("ativo", estaAtivo);
+      botao.setAttribute("aria-pressed", String(estaAtivo));
     });
 
     renderizar();
@@ -862,7 +869,7 @@
     if (!regionalAtiva) {
       conteudo.innerHTML = `
         <div class="mensagem">
-          Escolha uma regional ou pesquise uma cidade, posto ou combustível.
+          Escolha uma regional ou pesquise uma cidade, posto ou combustível. Toque novamente na regional selecionada para limpar a seleção.
         </div>
       `;
       return;
