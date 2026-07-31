@@ -229,6 +229,20 @@
       color: var(--sirtec-cinza);
     }
 
+  .aviso ul {
+  margin: 10px 0 0;
+  padding-left: 22px;
+  }
+
+  .aviso li {
+  margin-bottom: 6px;
+  line-height: 1.5;
+  }
+
+  .aviso li:last-child {
+  margin-bottom: 0;
+  }
+
     footer {
       text-align: center;
       padding: 18px;
@@ -255,9 +269,15 @@
 </header>
 
 <main>
-  <div class="aviso">
-    <strong>Importante:</strong> consulte o posto e o combustível indicado antes de abastecer.
-  </div>
+  
+<div class="aviso">
+  <strong>Importante:</strong>
+  <ul>
+    <li>Consulte o posto e o combustível indicado antes de abastecer.</li>
+    <li>Os abastecimentos devem ser realizados ao final do turno da equipe, para evitar perda de tempo durante a operação.</li>
+    <li>Caso ocorra algum erro, acione imediatamente o frotista local para receber as orientações necessárias.</li>
+  </ul>
+</div>
 
   <input
     id="busca"
