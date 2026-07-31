@@ -333,18 +333,70 @@
     };
   }
 
-  async function carregarDados() {
-    conteudo.innerHTML = `
-      <div class="mensagem">
-        Carregando postos homologados...
-      </div>
-    `;
 
-    busca.disabled = true;
-    botoesRegionais.innerHTML = "";
+  const CHAVE_CACHE = "sirtec-postos-cache-v1";
+  const TEMPO_MAXIMO_CACHE = 24 * 60 * 60 * 1000;
+
+  function prepararDados(lista) {
+    return lista.map((regional, indice) => ({
+      ...regional,
+      id: `${normalizarTexto(regional.nome).replace(/\s+/g, "-")}-${indice + 1}`
+    }));
+  }
+
+  function lerCache() {
+    try {
+      const item = JSON.parse(localStorage.getItem(CHAVE_CACHE));
+
+      if (
+        !item ||
+        !Array.isArray(item.dados) ||
+        !item.salvoEm ||
+        Date.now() - item.salvoEm > TEMPO_MAXIMO_CACHE
+      ) {
+        return null;
+      }
+
+      return item.dados;
+    } catch {
+      return null;
+    }
+  }
+
+  function salvarCache(lista) {
+    try {
+      localStorage.setItem(
+        CHAVE_CACHE,
+        JSON.stringify({
+          salvoEm: Date.now(),
+          dados: lista
+        })
+      );
+    } catch {
+      // O portal continua funcionando mesmo se o navegador bloquear o cache.
+    }
+  }
+
+  function exibirDados(lista) {
+    dados = prepararDados(lista);
+    busca.disabled = false;
+    criarBotoes();
+    renderizar();
+  }
+
+  async function consultarApi() {
+    const controlador = new AbortController();
+    const limite = setTimeout(() => controlador.abort(), 12000);
 
     try {
-      const resposta = await fetch(URL_API, { cache: "no-store" });
+      const separador = URL_API.includes("?") ? "&" : "?";
+      const resposta = await fetch(
+        `${URL_API}${separador}t=${Date.now()}`,
+        {
+          cache: "no-store",
+          signal: controlador.signal
+        }
+      );
 
       if (!resposta.ok) {
         throw new Error(`Erro HTTP ${resposta.status}`);
@@ -356,23 +408,49 @@
         throw new Error(retorno.mensagem || "Resposta inválida da API.");
       }
 
-      dados = retorno.dados.map((regional, indice) => ({
-        ...regional,
-        id: `${normalizarTexto(regional.nome).replace(/\s+/g, "-")}-${indice + 1}`
-      }));
+      return retorno.dados;
+    } finally {
+      clearTimeout(limite);
+    }
+  }
 
-      busca.disabled = false;
-      criarBotoes();
-      renderizar();
-    } catch (erro) {
-      console.error("Falha ao carregar os dados:", erro);
+  async function carregarDados() {
+    busca.disabled = true;
+    botoesRegionais.innerHTML = "";
 
+    const cache = lerCache();
+
+    if (cache) {
+      exibirDados(cache);
+    } else {
       conteudo.innerHTML = `
         <div class="mensagem">
-          Não foi possível carregar os postos no momento.<br>
-          Atualize a página para tentar novamente.
+          Carregando postos homologados...
         </div>
       `;
+    }
+
+    try {
+      const dadosAtualizados = await consultarApi();
+      salvarCache(dadosAtualizados);
+
+      const estadoAnterior = JSON.stringify(cache || []);
+      const estadoAtual = JSON.stringify(dadosAtualizados);
+
+      if (!cache || estadoAnterior !== estadoAtual) {
+        exibirDados(dadosAtualizados);
+      }
+    } catch (erro) {
+      console.error("Falha ao atualizar os dados:", erro);
+
+      if (!cache) {
+        conteudo.innerHTML = `
+          <div class="mensagem">
+            Não foi possível carregar os postos no momento.<br>
+            Atualize a página para tentar novamente.
+          </div>
+        `;
+      }
     }
   }
 
