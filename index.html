@@ -386,7 +386,7 @@
     if (!valor) return "Última atualização não informada";
     const data = new Date(valor);
     if (Number.isNaN(data.getTime())) return "Última atualização não informada";
-    return `Última atualização: ${data.toLocaleDateString("pt-BR")} às ${data.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
+    return `Última atualização do banco de dados: ${data.toLocaleDateString("pt-BR")} às ${data.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
   }
 
   function atualizarRodape() {
