@@ -243,6 +243,18 @@
   margin-bottom: 0;
   }
 
+
+    .controles { display: grid; gap: 14px; margin-bottom: 18px; }
+    .filtros-combustivel { display: flex; flex-wrap: wrap; gap: 8px; }
+    .filtro-combustivel { border: 1px solid var(--borda); background: var(--branco); color: var(--sirtec-marrom); padding: 9px 12px; border-radius: 999px; font-weight: bold; cursor: pointer; }
+    .filtro-combustivel.ativo { background: var(--sirtec-marrom); color: var(--branco); border-color: var(--sirtec-marrom); }
+    .filtro-combustivel:disabled, .botao-localizacao:disabled { opacity: .55; cursor: wait; }
+    .localizacao-box { background: var(--branco); border: 1px solid var(--borda); border-radius: 10px; padding: 12px; }
+    .botao-localizacao { width: 100%; border: 0; border-radius: 8px; padding: 12px; background: var(--sirtec-laranja); color: var(--sirtec-marrom); font-weight: bold; cursor: pointer; }
+    .status-localizacao { display: block; margin-top: 8px; color: var(--sirtec-cinza); font-size: 12px; line-height: 1.4; }
+    .distancia-posto { display: inline-block; margin: -2px 0 11px; padding: 6px 9px; border-radius: 999px; background: #e8f5ee; color: var(--verde-escuro); font-size: 13px; font-weight: bold; }
+    .ultima-atualizacao { display: block; margin-top: 6px; opacity: .82; }
+
     footer {
       text-align: center;
       padding: 18px;
@@ -279,13 +291,23 @@
   </ul>
 </div>
 
-  <input
-    id="busca"
-    class="busca"
-    type="search"
-    placeholder="Pesquisar cidade ou posto"
-    aria-label="Pesquisar cidade ou posto"
-  >
+  <div class="controles">
+    <input id="busca" class="busca" type="search" placeholder="Pesquisar cidade, posto ou combustível" aria-label="Pesquisar cidade, posto ou combustível">
+    <div>
+      <div class="rotulo">FILTRAR POR COMBUSTÍVEL</div>
+      <div id="filtrosCombustivel" class="filtros-combustivel" role="group" aria-label="Filtrar postos por combustível">
+        <button class="filtro-combustivel ativo" data-combustivel="todos" type="button" aria-pressed="true">Todos</button>
+        <button class="filtro-combustivel" data-combustivel="gasolina comum" type="button" aria-pressed="false">Gasolina</button>
+        <button class="filtro-combustivel" data-combustivel="diesel s10" type="button" aria-pressed="false">Diesel S10</button>
+        <button class="filtro-combustivel" data-combustivel="diesel comum" type="button" aria-pressed="false">Diesel Comum</button>
+        <button class="filtro-combustivel" data-combustivel="etanol" type="button" aria-pressed="false">Etanol</button>
+      </div>
+    </div>
+    <div class="localizacao-box">
+      <button id="botaoLocalizacao" class="botao-localizacao" type="button">📍 Usar minha localização</button>
+      <span id="statusLocalizacao" class="status-localizacao">A localização é usada apenas no navegador. As coordenadas dos postos são obtidas diretamente dos links do Google Maps.</span>
+    </div>
+  </div>
 
   <h2 class="titulo-secao">Selecione sua regional</h2>
   <section id="botoesRegionais" class="regionais"></section>
@@ -295,19 +317,29 @@
   </section>
 </main>
 
-<footer>Frota Corporativa - Sirtec Sistemas Elétricos</footer>
+<footer>Frota Corporativa - Sirtec Sistemas Elétricos<span id="ultimaAtualizacao" class="ultima-atualizacao">Última atualização não informada</span></footer>
 
 <script>
   const URL_API = "https://script.google.com/macros/s/AKfycbynwwGAHBnb-eDKRZuhSF-S2LRu8zqCePgu8RBP_y5-XhrefBW74BFHqyGIu5oxsw-Kuw/exec";
+  const CHAVE_CACHE = "sirtec-postos-cache-v2";
+  const TEMPO_MAXIMO_CACHE = 24 * 60 * 60 * 1000;
+
   let dados = [];
+  let regionalAtiva = null;
+  let combustivelAtivo = "todos";
+  let localizacaoUsuario = null;
+  let atualizadoEm = null;
 
   const botoesRegionais = document.getElementById("botoesRegionais");
   const conteudo = document.getElementById("conteudo");
   const busca = document.getElementById("busca");
-  let regionalAtiva = null;
+  const filtrosCombustivel = document.getElementById("filtrosCombustivel");
+  const botaoLocalizacao = document.getElementById("botaoLocalizacao");
+  const statusLocalizacao = document.getElementById("statusLocalizacao");
+  const ultimaAtualizacao = document.getElementById("ultimaAtualizacao");
 
   function escapar(texto) {
-    return String(texto)
+    return String(texto ?? "")
       .replaceAll("&", "&amp;")
       .replaceAll("<", "&lt;")
       .replaceAll(">", "&gt;")
@@ -316,7 +348,7 @@
   }
 
   function normalizarTexto(texto) {
-    return String(texto)
+    return String(texto ?? "")
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .toLocaleLowerCase("pt-BR")
@@ -327,108 +359,161 @@
 
   function obterVisualCombustivel(combustivel) {
     const nome = normalizarTexto(combustivel);
-
     const visuais = {
-      "gasolina comum": {
-        classe: "combustivel-gasolina",
-        simbolo: "⛽"
-      },
-      "diesel s10": {
-        classe: "combustivel-diesel-s10",
-        simbolo: "⚙️"
-      },
-      "diesel comum": {
-        classe: "combustivel-diesel-comum",
-        simbolo: "🚛"
-      },
-      "etanol": {
-        classe: "combustivel-etanol",
-        simbolo: "🌿"
-      }
+      "gasolina comum": { classe: "combustivel-gasolina", simbolo: "⛽" },
+      "diesel s10": { classe: "combustivel-diesel-s10", simbolo: "⚙️" },
+      "diesel comum": { classe: "combustivel-diesel-comum", simbolo: "🚛" },
+      "etanol": { classe: "combustivel-etanol", simbolo: "🌿" }
     };
-
-    return visuais[nome] || {
-      classe: "combustivel-outro",
-      simbolo: "◆"
-    };
+    return visuais[nome] || { classe: "combustivel-outro", simbolo: "◆" };
   }
 
+  function extrairCoordenadasDoLink(link) {
+    const original = String(link || "").trim();
+    if (!original) return null;
 
-  const CHAVE_CACHE = "sirtec-postos-cache-v1";
-  const TEMPO_MAXIMO_CACHE = 24 * 60 * 60 * 1000;
+    let texto = original;
+    try {
+      texto = decodeURIComponent(original);
+    } catch (_) {
+      // Mantém o endereço original caso ele não possa ser decodificado.
+    }
+
+    const padroes = [
+      /@(-?\d{1,2}(?:\.\d+)?),(-?\d{1,3}(?:\.\d+)?)/,
+      /[?&](?:q|query|destination|ll|center)=(-?\d{1,2}(?:\.\d+)?)[,\s]+(-?\d{1,3}(?:\.\d+)?)/i,
+      /!3d(-?\d{1,2}(?:\.\d+))!4d(-?\d{1,3}(?:\.\d+))/i,
+      /\/place\/(-?\d{1,2}(?:\.\d+)?),(-?\d{1,3}(?:\.\d+)?)/i
+    ];
+
+    for (const padrao of padroes) {
+      const correspondencia = texto.match(padrao);
+      if (!correspondencia) continue;
+
+      const latitude = Number(correspondencia[1]);
+      const longitude = Number(correspondencia[2]);
+
+      if (
+        Number.isFinite(latitude) &&
+        Number.isFinite(longitude) &&
+        Math.abs(latitude) <= 90 &&
+        Math.abs(longitude) <= 180
+      ) {
+        return { latitude, longitude };
+      }
+    }
+
+    return null;
+  }
 
   function prepararDados(lista) {
-    return lista.map((regional, indice) => ({
+    return lista.map((regional, indiceRegional) => ({
       ...regional,
-      id: `${normalizarTexto(regional.nome).replace(/\s+/g, "-")}-${indice + 1}`
+      id: `${normalizarTexto(regional.nome).replace(/\s+/g, "-")}-${indiceRegional + 1}`,
+      cidades: (regional.cidades || []).map(cidade => ({
+        ...cidade,
+        postos: (cidade.postos || []).map(posto => {
+          const coordenadasLink = extrairCoordenadasDoLink(posto.maps);
+          return {
+            ...posto,
+            latitude: coordenadasLink?.latitude ?? null,
+            longitude: coordenadasLink?.longitude ?? null,
+            distancia: null
+          };
+        })
+      }))
     }));
+  }
+
+  function calcularDistanciaKm(lat1, lon1, lat2, lon2) {
+    const raioTerra = 6371;
+    const radianos = graus => graus * Math.PI / 180;
+    const dLat = radianos(lat2 - lat1);
+    const dLon = radianos(lon2 - lon1);
+    const a = Math.sin(dLat / 2) ** 2 +
+      Math.cos(radianos(lat1)) * Math.cos(radianos(lat2)) *
+      Math.sin(dLon / 2) ** 2;
+    return raioTerra * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+
+  function atualizarDistancias() {
+    if (!localizacaoUsuario) return;
+    dados.forEach(regional => regional.cidades.forEach(cidade => cidade.postos.forEach(posto => {
+      posto.distancia = posto.latitude !== null && posto.longitude !== null
+        ? calcularDistanciaKm(
+            localizacaoUsuario.latitude,
+            localizacaoUsuario.longitude,
+            posto.latitude,
+            posto.longitude
+          )
+        : null;
+    })));
+  }
+
+  function formatarDistancia(distancia) {
+    if (!Number.isFinite(distancia)) return "";
+    if (distancia < 1) return `${Math.round(distancia * 1000)} m de você`;
+    return `${distancia.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} km de você`;
+  }
+
+  function formatarAtualizacao(valor) {
+    if (!valor) return "Última atualização não informada";
+    const data = new Date(valor);
+    if (Number.isNaN(data.getTime())) return "Última atualização não informada";
+    return `Última atualização: ${data.toLocaleDateString("pt-BR")} às ${data.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
+  }
+
+  function atualizarRodape() {
+    ultimaAtualizacao.textContent = formatarAtualizacao(atualizadoEm);
   }
 
   function lerCache() {
     try {
       const item = JSON.parse(localStorage.getItem(CHAVE_CACHE));
-
-      if (
-        !item ||
-        !Array.isArray(item.dados) ||
-        !item.salvoEm ||
-        Date.now() - item.salvoEm > TEMPO_MAXIMO_CACHE
-      ) {
-        return null;
-      }
-
-      return item.dados;
+      if (!item || !Array.isArray(item.dados) || !item.salvoEm || Date.now() - item.salvoEm > TEMPO_MAXIMO_CACHE) return null;
+      return item;
     } catch {
       return null;
     }
   }
 
-  function salvarCache(lista) {
+  function salvarCache(retorno) {
     try {
-      localStorage.setItem(
-        CHAVE_CACHE,
-        JSON.stringify({
-          salvoEm: Date.now(),
-          dados: lista
-        })
-      );
-    } catch {
-      // O portal continua funcionando mesmo se o navegador bloquear o cache.
-    }
+      localStorage.setItem(CHAVE_CACHE, JSON.stringify({
+        salvoEm: Date.now(),
+        atualizadoEm: retorno.atualizadoEm || null,
+        dados: retorno.dados
+      }));
+    } catch {}
   }
 
-  function exibirDados(lista) {
+  function exibirDados(lista, dataAtualizacao) {
     dados = prepararDados(lista);
+    atualizadoEm = dataAtualizacao || atualizadoEm;
+    atualizarDistancias();
     busca.disabled = false;
+    filtrosCombustivel.querySelectorAll("button").forEach(botao => botao.disabled = false);
+    botaoLocalizacao.disabled = false;
     criarBotoes();
+    atualizarRodape();
     renderizar();
   }
 
   async function consultarApi() {
     const controlador = new AbortController();
     const limite = setTimeout(() => controlador.abort(), 12000);
-
     try {
       const separador = URL_API.includes("?") ? "&" : "?";
-      const resposta = await fetch(
-        `${URL_API}${separador}t=${Date.now()}`,
-        {
-          cache: "no-store",
-          signal: controlador.signal
-        }
-      );
-
-      if (!resposta.ok) {
-        throw new Error(`Erro HTTP ${resposta.status}`);
-      }
-
+      const resposta = await fetch(`${URL_API}${separador}t=${Date.now()}`, {
+        cache: "no-store",
+        signal: controlador.signal
+      });
+      if (!resposta.ok) throw new Error(`Erro HTTP ${resposta.status}`);
       const retorno = await resposta.json();
-
       if (!retorno.sucesso || !Array.isArray(retorno.dados)) {
         throw new Error(retorno.mensagem || "Resposta inválida da API.");
       }
-
-      return retorno.dados;
+      return retorno;
     } finally {
       clearTimeout(limite);
     }
@@ -436,253 +521,196 @@
 
   async function carregarDados() {
     busca.disabled = true;
+    filtrosCombustivel.querySelectorAll("button").forEach(botao => botao.disabled = true);
+    botaoLocalizacao.disabled = true;
     botoesRegionais.innerHTML = "";
 
     const cache = lerCache();
-
     if (cache) {
-      exibirDados(cache);
+      exibirDados(cache.dados, cache.atualizadoEm);
     } else {
-      conteudo.innerHTML = `
-        <div class="mensagem">
-          Carregando postos indicados...
-        </div>
-      `;
+      conteudo.innerHTML = '<div class="mensagem">Carregando postos indicados...</div>';
     }
 
     try {
-      const dadosAtualizados = await consultarApi();
-      salvarCache(dadosAtualizados);
-
-      const estadoAnterior = JSON.stringify(cache || []);
-      const estadoAtual = JSON.stringify(dadosAtualizados);
-
-      if (!cache || estadoAnterior !== estadoAtual) {
-        exibirDados(dadosAtualizados);
+      const retorno = await consultarApi();
+      salvarCache(retorno);
+      const estadoAnterior = JSON.stringify(cache?.dados || []);
+      const estadoAtual = JSON.stringify(retorno.dados);
+      if (!cache || estadoAnterior !== estadoAtual || cache.atualizadoEm !== retorno.atualizadoEm) {
+        exibirDados(retorno.dados, retorno.atualizadoEm);
       }
     } catch (erro) {
       console.error("Falha ao atualizar os dados:", erro);
-
       if (!cache) {
-        conteudo.innerHTML = `
-          <div class="mensagem">
-            Não foi possível carregar os postos no momento.<br>
-            Atualize a página para tentar novamente.
-          </div>
-        `;
+        conteudo.innerHTML = '<div class="mensagem">Não foi possível carregar os postos no momento.<br>Atualize a página para tentar novamente.</div>';
       }
     }
   }
 
   function criarBotoes() {
     botoesRegionais.innerHTML = dados.map(regional => `
-      <button
-        class="botao-regional"
-        data-id="${regional.id}"
-        type="button"
-        aria-pressed="false">
+      <button class="botao-regional" data-id="${regional.id}" type="button" aria-pressed="false">
         ${escapar(regional.nome)}
-      </button>
-    `).join("");
-
+      </button>`).join("");
     document.querySelectorAll(".botao-regional").forEach(botao => {
       botao.addEventListener("click", () => selecionarRegional(botao.dataset.id));
     });
   }
 
   function selecionarRegional(id) {
-    // Ao tocar novamente na regional selecionada, remove a seleção.
     regionalAtiva = regionalAtiva === id ? null : id;
     busca.value = "";
-
     document.querySelectorAll(".botao-regional").forEach(botao => {
-      const estaAtivo = botao.dataset.id === regionalAtiva;
-      botao.classList.toggle("ativo", estaAtivo);
-      botao.setAttribute("aria-pressed", String(estaAtivo));
+      const ativo = botao.dataset.id === regionalAtiva;
+      botao.classList.toggle("ativo", ativo);
+      botao.setAttribute("aria-pressed", String(ativo));
     });
-
     renderizar();
+  }
+
+  function postoAtendeCombustivel(posto) {
+    return combustivelAtivo === "todos" ||
+      posto.combustiveis.some(item => normalizarTexto(item) === combustivelAtivo);
+  }
+
+  function ordenarPostos(postos) {
+    return [...postos].sort((a, b) => {
+      if (Number.isFinite(a.distancia) && Number.isFinite(b.distancia)) return a.distancia - b.distancia;
+      if (Number.isFinite(a.distancia)) return -1;
+      if (Number.isFinite(b.distancia)) return 1;
+      return String(a.nome).localeCompare(String(b.nome), "pt-BR", { sensitivity: "base" });
+    });
+  }
+
+  function filtrarRegionais(regionais, termo) {
+    return regionais.map(regional => {
+      const cidades = regional.cidades.map(cidade => {
+        const cidadeCombina = termo && normalizarTexto(cidade.nome).includes(termo);
+        const postos = ordenarPostos(cidade.postos.filter(posto => {
+          const atendeBusca = !termo || cidadeCombina ||
+            normalizarTexto(posto.nome).includes(termo) ||
+            posto.combustiveis.some(combustivel => normalizarTexto(combustivel).includes(termo));
+          return atendeBusca && postoAtendeCombustivel(posto);
+        }));
+        return { ...cidade, postos };
+      }).filter(cidade => cidade.postos.length);
+
+      cidades.sort((a, b) => {
+        const menorA = a.postos.find(p => Number.isFinite(p.distancia))?.distancia;
+        const menorB = b.postos.find(p => Number.isFinite(p.distancia))?.distancia;
+        if (Number.isFinite(menorA) && Number.isFinite(menorB)) return menorA - menorB;
+        if (Number.isFinite(menorA)) return -1;
+        if (Number.isFinite(menorB)) return 1;
+        return 0;
+      });
+      return { ...regional, cidades };
+    }).filter(regional => regional.cidades.length);
+  }
+
+  function renderizarPosto(posto) {
+    const distancia = Number.isFinite(posto.distancia)
+      ? `<div class="distancia-posto">📍 ${escapar(formatarDistancia(posto.distancia))}</div>`
+      : "";
+
+    return `
+      <div class="posto">
+        <h4>${escapar(posto.nome)}</h4>
+        ${distancia}
+        <div class="rotulo">COMBUSTÍVEIS INDICADOS</div>
+        <div class="combustiveis">
+          ${posto.combustiveis.map(combustivel => {
+            const visual = obterVisualCombustivel(combustivel);
+            return `<span class="combustivel ${visual.classe}"><span class="combustivel-icone" aria-hidden="true">${visual.simbolo}</span>${escapar(combustivel)}</span>`;
+          }).join("")}
+        </div>
+        <a class="botao-mapa" href="${escapar(posto.maps)}" target="_blank" rel="noopener noreferrer">Abrir no Google Maps</a>
+      </div>`;
+  }
+
+  function renderizarRegional(regional) {
+    return `
+      <section>
+        <h2 class="nome-regional">Regional ${escapar(regional.nome)}</h2>
+        ${regional.cidades.map(cidade => `
+          <article class="cidade">
+            <h3>${escapar(cidade.nome)}</h3>
+            ${cidade.postos.map(renderizarPosto).join("")}
+          </article>`).join("")}
+      </section>`;
   }
 
   function renderizar() {
     const termo = normalizarTexto(busca.value);
+    let regionaisBase;
 
-    // Quando existe uma pesquisa, procura em todas as regionais
     if (termo) {
-      const resultados = dados
-        .map(regional => {
-          const cidades = regional.cidades
-            .map(cidade => {
-              const cidadeCombina = normalizarTexto(cidade.nome).includes(termo);
-
-              const postos = cidade.postos.filter(posto =>
-                cidadeCombina ||
-                normalizarTexto(posto.nome).includes(termo) ||
-                posto.combustiveis.some(combustivel =>
-                  normalizarTexto(combustivel).includes(termo)
-                )
-              );
-
-              return {
-                ...cidade,
-                postos
-              };
-            })
-            .filter(cidade => cidade.postos.length);
-
-          return {
-            ...regional,
-            cidades
-          };
-        })
-        .filter(regional => regional.cidades.length);
-
-      document.querySelectorAll(".botao-regional").forEach(botao => {
-        botao.classList.remove("ativo");
-      });
-
-      if (!resultados.length) {
-        conteudo.innerHTML = `
-          <div class="mensagem">
-            Nenhuma cidade, posto ou combustível encontrado.
-          </div>
-        `;
-        return;
-      }
-
-      conteudo.innerHTML = resultados.map(regional => `
-        <section>
-          <h2 class="nome-regional">
-            Regional ${escapar(regional.nome)}
-          </h2>
-
-          ${regional.cidades.map(cidade => `
-            <article class="cidade">
-              <h3>${escapar(cidade.nome)}</h3>
-
-              ${cidade.postos.map(posto => `
-                <div class="posto">
-                  <h4>${escapar(posto.nome)}</h4>
-
-                  <div class="rotulo">
-                    COMBUSTÍVEIS INDICADOS
-                  </div>
-
-                  <div class="combustiveis">
-                    ${posto.combustiveis.map(combustivel => {
-                      const visual = obterVisualCombustivel(combustivel);
-
-                      return `
-                        <span class="combustivel ${visual.classe}">
-                          <span class="combustivel-icone" aria-hidden="true">
-                            ${visual.simbolo}
-                          </span>
-                          ${escapar(combustivel)}
-                        </span>
-                      `;
-                    }).join("")}
-                  </div>
-
-                  <a
-                    class="botao-mapa"
-                    href="${escapar(posto.maps)}"
-                    target="_blank"
-                    rel="noopener noreferrer">
-                    Abrir no Google Maps
-                  </a>
-                </div>
-              `).join("")}
-            </article>
-          `).join("")}
-        </section>
-      `).join("");
-
+      regionaisBase = dados;
+      document.querySelectorAll(".botao-regional").forEach(botao => botao.classList.remove("ativo"));
+    } else if (regionalAtiva) {
+      regionaisBase = dados.filter(item => item.id === regionalAtiva);
+    } else {
+      conteudo.innerHTML = '<div class="mensagem">Escolha uma regional, pesquise um posto ou use os filtros de combustível.</div>';
       return;
     }
 
-    // Sem pesquisa, mantém a navegação normal por regional
-    if (!regionalAtiva) {
-      conteudo.innerHTML = `
-        <div class="mensagem">
-          Escolha uma regional ou pesquise uma cidade, posto ou combustível. Toque novamente na regional selecionada para limpar a seleção.
-        </div>
-      `;
+    const resultados = filtrarRegionais(regionaisBase, termo);
+    if (!resultados.length) {
+      conteudo.innerHTML = '<div class="mensagem">Nenhum posto encontrado com os critérios selecionados.</div>';
       return;
     }
-
-    const regional = dados.find(item => item.id === regionalAtiva);
-
-    if (!regional) {
-      regionalAtiva = null;
-      conteudo.innerHTML = `
-        <div class="mensagem">
-          Selecione uma regional válida.
-        </div>
-      `;
-      return;
-    }
-
-    if (!regional.cidades.length) {
-      conteudo.innerHTML = `
-        <h2 class="nome-regional">
-          Regional ${escapar(regional.nome)}
-        </h2>
-
-        <div class="mensagem">
-          Os postos desta regional ainda serão cadastrados.
-        </div>
-      `;
-      return;
-    }
-
-    conteudo.innerHTML = `
-      <h2 class="nome-regional">
-        Regional ${escapar(regional.nome)}
-      </h2>
-
-      ${regional.cidades.map(cidade => `
-        <article class="cidade">
-          <h3>${escapar(cidade.nome)}</h3>
-
-          ${cidade.postos.map(posto => `
-            <div class="posto">
-              <h4>${escapar(posto.nome)}</h4>
-
-              <div class="rotulo">
-                COMBUSTÍVEIS INDICADOS
-              </div>
-
-              <div class="combustiveis">
-                ${posto.combustiveis.map(combustivel => {
-                  const visual = obterVisualCombustivel(combustivel);
-
-                  return `
-                    <span class="combustivel ${visual.classe}">
-                      <span class="combustivel-icone" aria-hidden="true">
-                        ${visual.simbolo}
-                      </span>
-                      ${escapar(combustivel)}
-                    </span>
-                  `;
-                }).join("")}
-              </div>
-
-              <a
-                class="botao-mapa"
-                href="${escapar(posto.maps)}"
-                target="_blank"
-                rel="noopener noreferrer">
-                Abrir no Google Maps
-              </a>
-            </div>
-          `).join("")}
-        </article>
-      `).join("")}
-    `;
+    conteudo.innerHTML = resultados.map(renderizarRegional).join("");
   }
+
+  function solicitarLocalizacao() {
+    if (!navigator.geolocation) {
+      statusLocalizacao.textContent = "Seu navegador não oferece suporte à localização.";
+      return;
+    }
+
+    botaoLocalizacao.disabled = true;
+    botaoLocalizacao.textContent = "Obtendo localização...";
+    statusLocalizacao.textContent = "Autorize o acesso à localização quando o navegador solicitar.";
+
+    navigator.geolocation.getCurrentPosition(
+      posicao => {
+        localizacaoUsuario = {
+          latitude: posicao.coords.latitude,
+          longitude: posicao.coords.longitude
+        };
+        atualizarDistancias();
+        botaoLocalizacao.disabled = false;
+        botaoLocalizacao.textContent = "📍 Atualizar minha localização";
+        statusLocalizacao.textContent = "Os postos cujos links do Google Maps contêm coordenadas foram ordenados pela distância até você.";
+        renderizar();
+      },
+      erro => {
+        botaoLocalizacao.disabled = false;
+        botaoLocalizacao.textContent = "📍 Usar minha localização";
+        statusLocalizacao.textContent = erro.code === 1
+          ? "Permissão de localização não concedida."
+          : "Não foi possível obter sua localização. Tente novamente.";
+      },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 300000 }
+    );
+  }
+
   busca.addEventListener("input", renderizar);
+  botaoLocalizacao.addEventListener("click", solicitarLocalizacao);
+  filtrosCombustivel.addEventListener("click", evento => {
+    const botao = evento.target.closest("button[data-combustivel]");
+    if (!botao) return;
+    combustivelAtivo = botao.dataset.combustivel;
+    filtrosCombustivel.querySelectorAll("button").forEach(item => {
+      const ativo = item === botao;
+      item.classList.toggle("ativo", ativo);
+      item.setAttribute("aria-pressed", String(ativo));
+    });
+    renderizar();
+  });
 
   carregarDados();
 </script>
+
 </body>
 </html>
