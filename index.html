@@ -248,11 +248,7 @@
     .filtros-combustivel { display: flex; flex-wrap: wrap; gap: 8px; }
     .filtro-combustivel { border: 1px solid var(--borda); background: var(--branco); color: var(--sirtec-marrom); padding: 9px 12px; border-radius: 999px; font-weight: bold; cursor: pointer; }
     .filtro-combustivel.ativo { background: var(--sirtec-marrom); color: var(--branco); border-color: var(--sirtec-marrom); }
-    .filtro-combustivel:disabled, .botao-localizacao:disabled { opacity: .55; cursor: wait; }
-    .localizacao-box { background: var(--branco); border: 1px solid var(--borda); border-radius: 10px; padding: 12px; }
-    .botao-localizacao { width: 100%; border: 0; border-radius: 8px; padding: 12px; background: var(--sirtec-laranja); color: var(--sirtec-marrom); font-weight: bold; cursor: pointer; }
-    .status-localizacao { display: block; margin-top: 8px; color: var(--sirtec-cinza); font-size: 12px; line-height: 1.4; }
-    .distancia-posto { display: inline-block; margin: -2px 0 11px; padding: 6px 9px; border-radius: 999px; background: #e8f5ee; color: var(--verde-escuro); font-size: 13px; font-weight: bold; }
+    .filtro-combustivel:disabled { opacity: .55; cursor: wait; }
     .ultima-atualizacao { display: block; margin-top: 6px; opacity: .82; }
 
     footer {
@@ -292,7 +288,7 @@
 </div>
 
   <div class="controles">
-    <input id="busca" class="busca" type="search" placeholder="Pesquisar cidade, posto ou combustível" aria-label="Pesquisar cidade, posto ou combustível">
+    <input id="busca" class="busca" type="search" placeholder="Pesquisar regional, cidade, posto ou combustível" aria-label="Pesquisar regional, cidade, posto ou combustível">
     <div>
       <div class="rotulo">FILTRAR POR COMBUSTÍVEL</div>
       <div id="filtrosCombustivel" class="filtros-combustivel" role="group" aria-label="Filtrar postos por combustível">
@@ -302,10 +298,6 @@
         <button class="filtro-combustivel" data-combustivel="diesel comum" type="button" aria-pressed="false">Diesel Comum</button>
         <button class="filtro-combustivel" data-combustivel="etanol" type="button" aria-pressed="false">Etanol</button>
       </div>
-    </div>
-    <div class="localizacao-box">
-      <button id="botaoLocalizacao" class="botao-localizacao" type="button">📍 Usar minha localização</button>
-      <span id="statusLocalizacao" class="status-localizacao">A localização é usada apenas no navegador. As coordenadas dos postos são obtidas diretamente dos links do Google Maps.</span>
     </div>
   </div>
 
@@ -323,19 +315,17 @@
   const URL_API = "https://script.google.com/macros/s/AKfycbynwwGAHBnb-eDKRZuhSF-S2LRu8zqCePgu8RBP_y5-XhrefBW74BFHqyGIu5oxsw-Kuw/exec";
   const CHAVE_CACHE = "sirtec-postos-cache-v2";
   const TEMPO_MAXIMO_CACHE = 24 * 60 * 60 * 1000;
+  const CHAVE_REGIONAL = "sirtec-ultima-regional";
 
   let dados = [];
   let regionalAtiva = null;
   let combustivelAtivo = "todos";
-  let localizacaoUsuario = null;
   let atualizadoEm = null;
 
   const botoesRegionais = document.getElementById("botoesRegionais");
   const conteudo = document.getElementById("conteudo");
   const busca = document.getElementById("busca");
   const filtrosCombustivel = document.getElementById("filtrosCombustivel");
-  const botaoLocalizacao = document.getElementById("botaoLocalizacao");
-  const statusLocalizacao = document.getElementById("statusLocalizacao");
   const ultimaAtualizacao = document.getElementById("ultimaAtualizacao");
 
   function escapar(texto) {
@@ -368,92 +358,29 @@
     return visuais[nome] || { classe: "combustivel-outro", simbolo: "◆" };
   }
 
-  function extrairCoordenadasDoLink(link) {
-    const original = String(link || "").trim();
-    if (!original) return null;
-
-    let texto = original;
-    try {
-      texto = decodeURIComponent(original);
-    } catch (_) {
-      // Mantém o endereço original caso ele não possa ser decodificado.
-    }
-
-    const padroes = [
-      /@(-?\d{1,2}(?:\.\d+)?),(-?\d{1,3}(?:\.\d+)?)/,
-      /[?&](?:q|query|destination|ll|center)=(-?\d{1,2}(?:\.\d+)?)[,\s]+(-?\d{1,3}(?:\.\d+)?)/i,
-      /!3d(-?\d{1,2}(?:\.\d+))!4d(-?\d{1,3}(?:\.\d+))/i,
-      /\/place\/(-?\d{1,2}(?:\.\d+)?),(-?\d{1,3}(?:\.\d+)?)/i
-    ];
-
-    for (const padrao of padroes) {
-      const correspondencia = texto.match(padrao);
-      if (!correspondencia) continue;
-
-      const latitude = Number(correspondencia[1]);
-      const longitude = Number(correspondencia[2]);
-
-      if (
-        Number.isFinite(latitude) &&
-        Number.isFinite(longitude) &&
-        Math.abs(latitude) <= 90 &&
-        Math.abs(longitude) <= 180
-      ) {
-        return { latitude, longitude };
-      }
-    }
-
-    return null;
-  }
-
   function prepararDados(lista) {
     return lista.map((regional, indiceRegional) => ({
       ...regional,
       id: `${normalizarTexto(regional.nome).replace(/\s+/g, "-")}-${indiceRegional + 1}`,
       cidades: (regional.cidades || []).map(cidade => ({
         ...cidade,
-        postos: (cidade.postos || []).map(posto => {
-          const coordenadasLink = extrairCoordenadasDoLink(posto.maps);
-          return {
-            ...posto,
-            latitude: coordenadasLink?.latitude ?? null,
-            longitude: coordenadasLink?.longitude ?? null,
-            distancia: null
-          };
-        })
+        postos: cidade.postos || []
       }))
     }));
   }
 
-  function calcularDistanciaKm(lat1, lon1, lat2, lon2) {
-    const raioTerra = 6371;
-    const radianos = graus => graus * Math.PI / 180;
-    const dLat = radianos(lat2 - lat1);
-    const dLon = radianos(lon2 - lon1);
-    const a = Math.sin(dLat / 2) ** 2 +
-      Math.cos(radianos(lat1)) * Math.cos(radianos(lat2)) *
-      Math.sin(dLon / 2) ** 2;
-    return raioTerra * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  function obterRegionalSalva() {
+    try {
+      return localStorage.getItem(CHAVE_REGIONAL);
+    } catch {
+      return null;
+    }
   }
 
-  function atualizarDistancias() {
-    if (!localizacaoUsuario) return;
-    dados.forEach(regional => regional.cidades.forEach(cidade => cidade.postos.forEach(posto => {
-      posto.distancia = posto.latitude !== null && posto.longitude !== null
-        ? calcularDistanciaKm(
-            localizacaoUsuario.latitude,
-            localizacaoUsuario.longitude,
-            posto.latitude,
-            posto.longitude
-          )
-        : null;
-    })));
-  }
-
-  function formatarDistancia(distancia) {
-    if (!Number.isFinite(distancia)) return "";
-    if (distancia < 1) return `${Math.round(distancia * 1000)} m de você`;
-    return `${distancia.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} km de você`;
+  function salvarRegional(id) {
+    try {
+      localStorage.setItem(CHAVE_REGIONAL, id);
+    } catch {}
   }
 
   function formatarAtualizacao(valor) {
@@ -490,10 +417,14 @@
   function exibirDados(lista, dataAtualizacao) {
     dados = prepararDados(lista);
     atualizadoEm = dataAtualizacao || atualizadoEm;
-    atualizarDistancias();
+
+    const regionalSalva = obterRegionalSalva();
+    regionalAtiva = dados.some(regional => regional.id === regionalSalva)
+      ? regionalSalva
+      : regionalAtiva;
+
     busca.disabled = false;
     filtrosCombustivel.querySelectorAll("button").forEach(botao => botao.disabled = false);
-    botaoLocalizacao.disabled = false;
     criarBotoes();
     atualizarRodape();
     renderizar();
@@ -522,7 +453,6 @@
   async function carregarDados() {
     busca.disabled = true;
     filtrosCombustivel.querySelectorAll("button").forEach(botao => botao.disabled = true);
-    botaoLocalizacao.disabled = true;
     botoesRegionais.innerHTML = "";
 
     const cache = lerCache();
@@ -549,10 +479,13 @@
   }
 
   function criarBotoes() {
-    botoesRegionais.innerHTML = dados.map(regional => `
-      <button class="botao-regional" data-id="${regional.id}" type="button" aria-pressed="false">
-        ${escapar(regional.nome)}
-      </button>`).join("");
+    botoesRegionais.innerHTML = dados.map(regional => {
+      const ativo = regional.id === regionalAtiva;
+      return `
+        <button class="botao-regional${ativo ? " ativo" : ""}" data-id="${regional.id}" type="button" aria-pressed="${ativo}">
+          ${escapar(regional.nome)}
+        </button>`;
+    }).join("");
     document.querySelectorAll(".botao-regional").forEach(botao => {
       botao.addEventListener("click", () => selecionarRegional(botao.dataset.id));
     });
@@ -560,6 +493,7 @@
 
   function selecionarRegional(id) {
     regionalAtiva = regionalAtiva === id ? null : id;
+    if (regionalAtiva) salvarRegional(regionalAtiva);
     busca.value = "";
     document.querySelectorAll(".botao-regional").forEach(botao => {
       const ativo = botao.dataset.id === regionalAtiva;
@@ -575,48 +509,41 @@
   }
 
   function ordenarPostos(postos) {
-    return [...postos].sort((a, b) => {
-      if (Number.isFinite(a.distancia) && Number.isFinite(b.distancia)) return a.distancia - b.distancia;
-      if (Number.isFinite(a.distancia)) return -1;
-      if (Number.isFinite(b.distancia)) return 1;
-      return String(a.nome).localeCompare(String(b.nome), "pt-BR", { sensitivity: "base" });
-    });
+    return [...postos].sort((a, b) =>
+      String(a.nome).localeCompare(String(b.nome), "pt-BR", { sensitivity: "base" })
+    );
   }
 
   function filtrarRegionais(regionais, termo) {
     return regionais.map(regional => {
+      const regionalCombina = termo && normalizarTexto(regional.nome).includes(termo);
+
       const cidades = regional.cidades.map(cidade => {
         const cidadeCombina = termo && normalizarTexto(cidade.nome).includes(termo);
+
         const postos = ordenarPostos(cidade.postos.filter(posto => {
-          const atendeBusca = !termo || cidadeCombina ||
+          const atendeBusca = !termo ||
+            regionalCombina ||
+            cidadeCombina ||
             normalizarTexto(posto.nome).includes(termo) ||
-            posto.combustiveis.some(combustivel => normalizarTexto(combustivel).includes(termo));
+            posto.combustiveis.some(combustivel =>
+              normalizarTexto(combustivel).includes(termo)
+            );
+
           return atendeBusca && postoAtendeCombustivel(posto);
         }));
+
         return { ...cidade, postos };
       }).filter(cidade => cidade.postos.length);
 
-      cidades.sort((a, b) => {
-        const menorA = a.postos.find(p => Number.isFinite(p.distancia))?.distancia;
-        const menorB = b.postos.find(p => Number.isFinite(p.distancia))?.distancia;
-        if (Number.isFinite(menorA) && Number.isFinite(menorB)) return menorA - menorB;
-        if (Number.isFinite(menorA)) return -1;
-        if (Number.isFinite(menorB)) return 1;
-        return 0;
-      });
       return { ...regional, cidades };
     }).filter(regional => regional.cidades.length);
   }
 
   function renderizarPosto(posto) {
-    const distancia = Number.isFinite(posto.distancia)
-      ? `<div class="distancia-posto">📍 ${escapar(formatarDistancia(posto.distancia))}</div>`
-      : "";
-
     return `
       <div class="posto">
         <h4>${escapar(posto.nome)}</h4>
-        ${distancia}
         <div class="rotulo">COMBUSTÍVEIS INDICADOS</div>
         <div class="combustiveis">
           ${posto.combustiveis.map(combustivel => {
@@ -650,7 +577,7 @@
     } else if (regionalAtiva) {
       regionaisBase = dados.filter(item => item.id === regionalAtiva);
     } else {
-      conteudo.innerHTML = '<div class="mensagem">Escolha uma regional, pesquise um posto ou use os filtros de combustível.</div>';
+      conteudo.innerHTML = '<div class="mensagem">Escolha uma regional, pesquise por regional, cidade ou posto, ou use os filtros de combustível.</div>';
       return;
     }
 
@@ -662,41 +589,7 @@
     conteudo.innerHTML = resultados.map(renderizarRegional).join("");
   }
 
-  function solicitarLocalizacao() {
-    if (!navigator.geolocation) {
-      statusLocalizacao.textContent = "Seu navegador não oferece suporte à localização.";
-      return;
-    }
-
-    botaoLocalizacao.disabled = true;
-    botaoLocalizacao.textContent = "Obtendo localização...";
-    statusLocalizacao.textContent = "Autorize o acesso à localização quando o navegador solicitar.";
-
-    navigator.geolocation.getCurrentPosition(
-      posicao => {
-        localizacaoUsuario = {
-          latitude: posicao.coords.latitude,
-          longitude: posicao.coords.longitude
-        };
-        atualizarDistancias();
-        botaoLocalizacao.disabled = false;
-        botaoLocalizacao.textContent = "📍 Atualizar minha localização";
-        statusLocalizacao.textContent = "Os postos cujos links do Google Maps contêm coordenadas foram ordenados pela distância até você.";
-        renderizar();
-      },
-      erro => {
-        botaoLocalizacao.disabled = false;
-        botaoLocalizacao.textContent = "📍 Usar minha localização";
-        statusLocalizacao.textContent = erro.code === 1
-          ? "Permissão de localização não concedida."
-          : "Não foi possível obter sua localização. Tente novamente.";
-      },
-      { enableHighAccuracy: true, timeout: 12000, maximumAge: 300000 }
-    );
-  }
-
   busca.addEventListener("input", renderizar);
-  botaoLocalizacao.addEventListener("click", solicitarLocalizacao);
   filtrosCombustivel.addEventListener("click", evento => {
     const botao = evento.target.closest("button[data-combustivel]");
     if (!botao) return;
