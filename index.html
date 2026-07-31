@@ -290,9 +290,8 @@
   <div class="controles">
     <input id="busca" class="busca" type="search" placeholder="Pesquisar regional, cidade, posto ou combustível" aria-label="Pesquisar regional, cidade, posto ou combustível">
     <div>
-      <div class="rotulo">FILTRAR POR COMBUSTÍVEL</div>
+      <div class="rotulo">FILTRAR POR COMBUSTÍVEL — SELECIONE UM OU MAIS</div>
       <div id="filtrosCombustivel" class="filtros-combustivel" role="group" aria-label="Filtrar postos por combustível">
-        <button class="filtro-combustivel ativo" data-combustivel="todos" type="button" aria-pressed="true">Todos</button>
         <button class="filtro-combustivel" data-combustivel="gasolina comum" type="button" aria-pressed="false">Gasolina</button>
         <button class="filtro-combustivel" data-combustivel="diesel s10" type="button" aria-pressed="false">Diesel S10</button>
         <button class="filtro-combustivel" data-combustivel="diesel comum" type="button" aria-pressed="false">Diesel Comum</button>
@@ -319,7 +318,7 @@
 
   let dados = [];
   let regionalAtiva = null;
-  let combustivelAtivo = "todos";
+  const combustiveisAtivos = new Set();
   let atualizadoEm = null;
 
   const botoesRegionais = document.getElementById("botoesRegionais");
@@ -504,8 +503,11 @@
   }
 
   function postoAtendeCombustivel(posto) {
-    return combustivelAtivo === "todos" ||
-      posto.combustiveis.some(item => normalizarTexto(item) === combustivelAtivo);
+    if (combustiveisAtivos.size === 0) return true;
+
+    return posto.combustiveis.some(item =>
+      combustiveisAtivos.has(normalizarTexto(item))
+    );
   }
 
   function ordenarPostos(postos) {
@@ -593,12 +595,19 @@
   filtrosCombustivel.addEventListener("click", evento => {
     const botao = evento.target.closest("button[data-combustivel]");
     if (!botao) return;
-    combustivelAtivo = botao.dataset.combustivel;
-    filtrosCombustivel.querySelectorAll("button").forEach(item => {
-      const ativo = item === botao;
-      item.classList.toggle("ativo", ativo);
-      item.setAttribute("aria-pressed", String(ativo));
-    });
+
+    const combustivel = botao.dataset.combustivel;
+    const estavaAtivo = combustiveisAtivos.has(combustivel);
+
+    if (estavaAtivo) {
+      combustiveisAtivos.delete(combustivel);
+    } else {
+      combustiveisAtivos.add(combustivel);
+    }
+
+    const ativo = !estavaAtivo;
+    botao.classList.toggle("ativo", ativo);
+    botao.setAttribute("aria-pressed", String(ativo));
     renderizar();
   });
 
